@@ -1,48 +1,24 @@
 // import net = require("net");
 import { box } from "tweetnacl";
-import { encodeBase64, decodeBase64 } from "tweetnacl-util";
 import crypt = require("./crypt");
 import fs = require("fs");
 import express = require("express");
 import WebSocket = require("ws");
+import { genConfig, Config, Friend } from "./Config";
 
 if (process.argv[2] == "genconfig") {
-  const keys = crypt.generateKeyPair();
-  let conf = {
-    ui: {
-      port: 3030,
-    },
-    transport: {
-      port: 2679,
-    },
-    id: {
-      name: "yournamehere",
-      secretKey: encodeBase64(keys.secretKey),
-      publicKey: encodeBase64(keys.publicKey),
-    },
-  };
-  console.log(conf);
+  genConfig();
   process.exit(0);
 }
 
-let loadConfig = () => {
-  let configFilePath = "./.data/config.json";
-  console.log("reading config file at ", configFilePath);
-
-  let config = JSON.parse(
-    fs.readFileSync(configFilePath, { encoding: "utf8" })
-  );
-  config.secretKey = decodeBase64(config.id.secretKey);
-  config.publicKey = decodeBase64(config.id.publicKey);
-  return config;
-};
-
-let config = loadConfig();
+let config = new Config("./.data/config.json");
 
 const ui = express();
 ui.use(express.static("public"));
-ui.listen(config.ui.port, "127.0.0.1", () => {
-  console.log(`ui listening locally at http://127.0.0.1:${config.ui.port}`);
+ui.listen(config.localHttpPort, "127.0.0.1", () => {
+  console.log(
+    `ui listening locally at http://127.0.0.1:${config.localHttpPort}`
+  );
 });
 
 const ws = new WebSocket.Server({ host: "127.0.0.1", port: 3001 });
@@ -52,20 +28,24 @@ ws.on("connection", function connection(ws) {
     let message = JSON.parse(data);
     console.log(`recieved ${message}`);
     console.log(`encrypting ${message.text} for ${message.to}`);
-    const toBuf = decodeBase64(`${message.to}=`);
-    const sharedB = box.before(toBuf, config.secretKey);
-    const encrypted = crypt.encrypt(sharedB, {
-      text: message.text,
-      date: message.date,
+    config.friends.forEach((f: Friend) => {
+      if (f.publicKeyBase64 == message.to) {
+        const sharedB = box.before(f.publicKey, config.secretKey);
+        const encrypted = crypt.encrypt(sharedB, {
+          text: message.text,
+          date: message.date,
+        });
+
+        fs.writeFileSync(".data/outbox/message", encrypted);
+      }
     });
-    fs.writeFileSync(".data/outbox/message", encrypted);
   });
 });
 
 const transport = express();
-transport.listen(config.transport.port, "::0", () => {
+transport.listen(config.internetListenPort, "::0", () => {
   console.log(
-    `transport listening to all ip addressed http://[::0]:${config.transport.port}`
+    `listening to on all ip6 interface http://[::0]:${config.internetListenPort}`
   );
 });
 
