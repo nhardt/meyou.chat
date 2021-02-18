@@ -3,24 +3,10 @@ import { box } from "tweetnacl";
 import { encodeBase64, decodeBase64 } from "tweetnacl-util";
 import crypt = require("./crypt");
 import fs = require("fs");
-import http = require("http");
-
-let configFilePath = "./.data/config.json";
-console.log("reading config file at ", configFilePath);
-let config = JSON.parse(fs.readFileSync(configFilePath, { encoding: "utf8" }));
-console.log("starting http server on ", config.port);
-const secretKey = decodeBase64(config.secretKey);
-const publicKey = decodeBase64(config.publicKey);
-
-const server = http.createServer((req, res) => {
-  res.end();
-});
-server.on("clientError", (err, socket) => {
-  socket.end("HTTP/1.1 400 Bad Request\r\n\r\n");
-});
-server.listen(8000);
+import express = require("express");
 
 if (process.argv[2] == "server") {
+  /*
   const sharedB = box.before(clientPublicKey, serverSecretKey);
   console.log("starting server");
   const server = net.createServer((c: net.Socket) => {
@@ -51,8 +37,9 @@ if (process.argv[2] == "server") {
     server.listen(2679, "::0", () => {
       console.log("server listening on ::0");
     });
-  }
+  }*/
 } else if (process.argv[2] == "client") {
+  /*
   const serverPublicKey = decodeBase64(
     "cW3T6xW6D128PkrTgP3Os6owHZlRI4eygwaRjbnI4l8="
   );
@@ -86,35 +73,33 @@ if (process.argv[2] == "server") {
     client.connect({ host: process.argv[3], port: 2679 });
   } else {
     client.connect({ host: "::1", port: 2679 });
-  }
+  } */
+} else if (process.argv[2] == "genconfig") {
+  const keys = crypt.generateKeyPair();
+  let conf = {
+    port: 2679,
+    name: "yournamehere",
+    secretKey: encodeBase64(keys.secretKey),
+    publicKey: encodeBase64(keys.publicKey),
+  };
+  console.log(conf);
 } else {
-  console.log("use 'npm run client' or 'npm run server'\n");
-  console.log("running crypt test\n");
-  const obj = { hello: "peer" };
-  const pairA = crypt.generateKeyPair();
-  console.log(
-    `const secretKeyA = decodeBase64("${encodeBase64(pairA.secretKey)}");`
+  let configFilePath = "./.data/config.json";
+  console.log("reading config file at ", configFilePath);
+  let config = JSON.parse(
+    fs.readFileSync(configFilePath, { encoding: "utf8" })
   );
-  console.log(
-    `const publicKeyA = decodeBase64("${encodeBase64(pairA.publicKey)}");`
-  );
-  const pairB = crypt.generateKeyPair();
-  console.log(
-    `const secretKeyB = decodeBase64("${encodeBase64(pairB.secretKey)}");`
-  );
-  console.log(
-    `const publicKeyB = decodeBase64("${encodeBase64(pairB.publicKey)}");`
-  );
-  const sharedA = box.before(pairB.publicKey, pairA.secretKey);
-  const sharedB = box.before(pairA.publicKey, pairB.secretKey);
-  const encrypted = crypt.encrypt(sharedA, obj);
-  const decrypted = crypt.decrypt(sharedB, encrypted);
+  console.log("starting http server on ", config.port);
+  const secretKey = decodeBase64(config.secretKey);
+  const publicKey = decodeBase64(config.publicKey);
 
-  if (decrypted.hello == obj.hello) {
-    console.log("encrypt/decrypt worked:", decrypted, obj); // should be shallow equal
-  } else {
-    console.log("encrypt/decrypt failed:", decrypted, obj);
-    console.log({ hello: "peer" } == { hello: "peer" });
-    console.log({ hello: "peer" });
-  }
+  const app = express();
+
+  app.get("/", (req, res) => {
+    res.send(`<html><body>hello ${config.name}</body></html>`);
+  });
+
+  app.listen(config.port, () => {
+    console.log(`listening at http://localhost:${config.port}`);
+  });
 }
