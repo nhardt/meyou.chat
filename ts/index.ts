@@ -1,13 +1,76 @@
-import net = require("net");
+// import net = require("net");
 import { box } from "tweetnacl";
 import { encodeBase64, decodeBase64 } from "tweetnacl-util";
 import crypt = require("./crypt");
 import fs = require("fs");
 import express = require("express");
+import WebSocket = require("ws");
 
+if (process.argv[2] == "genconfig") {
+  const keys = crypt.generateKeyPair();
+  let conf = {
+    ui: {
+      port: 3030,
+    },
+    transport: {
+      port: 2679,
+    },
+    id: {
+      name: "yournamehere",
+      secretKey: encodeBase64(keys.secretKey),
+      publicKey: encodeBase64(keys.publicKey),
+    },
+  };
+  console.log(conf);
+  process.exit(0);
+}
+
+let loadConfig = () => {
+  let configFilePath = "./.data/config.json";
+  console.log("reading config file at ", configFilePath);
+
+  let config = JSON.parse(
+    fs.readFileSync(configFilePath, { encoding: "utf8" })
+  );
+  config.secretKey = decodeBase64(config.id.secretKey);
+  config.publicKey = decodeBase64(config.id.publicKey);
+  return config;
+};
+
+let config = loadConfig();
+
+const ui = express();
+ui.use(express.static("public"));
+ui.listen(config.ui.port, "127.0.0.1", () => {
+  console.log(`ui listening locally at http://127.0.0.1:${config.ui.port}`);
+});
+
+const ws = new WebSocket.Server({ host: "127.0.0.1", port: 3001 });
+ws.on("connection", function connection(ws) {
+  console.log("websocket connection");
+  ws.on("message", function incoming(data: any) {
+    let message = JSON.parse(data);
+    console.log(`recieved ${message}`);
+    console.log(`encrypting ${message.text} for ${message.to}`);
+    const toBuf = decodeBase64(`${message.to}=`);
+    const sharedB = box.before(toBuf, config.secretKey);
+    const encrypted = crypt.encrypt(sharedB, {
+      text: message.text,
+      date: message.date,
+    });
+    fs.writeFileSync(".data/outbox/message", encrypted);
+  });
+});
+
+const transport = express();
+transport.listen(config.transport.port, "::0", () => {
+  console.log(
+    `transport listening to all ip addressed http://[::0]:${config.transport.port}`
+  );
+});
+
+/*
 if (process.argv[2] == "server") {
-  /*
-  const sharedB = box.before(clientPublicKey, serverSecretKey);
   console.log("starting server");
   const server = net.createServer((c: net.Socket) => {
     console.log("client connected");
@@ -37,7 +100,7 @@ if (process.argv[2] == "server") {
     server.listen(2679, "::0", () => {
       console.log("server listening on ::0");
     });
-  }*/
+  }
 } else if (process.argv[2] == "client") {
   /*
   const serverPublicKey = decodeBase64(
@@ -73,33 +136,6 @@ if (process.argv[2] == "server") {
     client.connect({ host: process.argv[3], port: 2679 });
   } else {
     client.connect({ host: "::1", port: 2679 });
-  } */
-} else if (process.argv[2] == "genconfig") {
-  const keys = crypt.generateKeyPair();
-  let conf = {
-    port: 2679,
-    name: "yournamehere",
-    secretKey: encodeBase64(keys.secretKey),
-    publicKey: encodeBase64(keys.publicKey),
-  };
-  console.log(conf);
-} else {
-  let configFilePath = "./.data/config.json";
-  console.log("reading config file at ", configFilePath);
-  let config = JSON.parse(
-    fs.readFileSync(configFilePath, { encoding: "utf8" })
-  );
-  console.log("starting http server on ", config.port);
-  const secretKey = decodeBase64(config.secretKey);
-  const publicKey = decodeBase64(config.publicKey);
-
-  const app = express();
-
-  app.get("/", (req, res) => {
-    res.send(`<html><body>hello ${config.name}</body></html>`);
-  });
-
-  app.listen(config.port, () => {
-    console.log(`listening at http://localhost:${config.port}`);
-  });
+  }
 }
+*/
