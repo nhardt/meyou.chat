@@ -9,6 +9,7 @@ export interface Friend {
   publicKeyBase64: string;
   networkName: String;
   publicKey?: Uint8Array;
+  messages: string[];
 }
 
 export interface ConfigFile {
@@ -41,6 +42,7 @@ export class Config {
     this.friends.forEach((f: Friend) => {
       console.log(f.publicKeyBase64);
       f.publicKey = decodeBase64(f.publicKeyBase64);
+      f.messages = [`start of conversation with ${f.displayName}`];
     });
   }
 }

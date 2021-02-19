@@ -11,6 +11,7 @@ if (process.argv[2] == "genconfig") {
 }
 
 let config = new Config("./.data/config.json");
+let localWebSocket: WebSocket;
 
 const ui = express();
 ui.use(express.static("public"));
@@ -25,6 +26,7 @@ const ws = new WebSocket.Server({
   port: config.localWebSocketPort,
 });
 ws.on("connection", function connection(conn) {
+  localWebSocket = conn;
   conn.on("message", function incoming(data: any) {
     // v0 - forward request directly peer.
     let message = JSON.parse(data);
@@ -88,9 +90,24 @@ transport.listen(config.internetListenPort, "::0", () => {
       for (let f of config.friends) {
         try {
           const sharedA = box.before(f.publicKey, config.secretKey);
-          const decrypted = crypt.decrypt(sharedA, rawData);
-          console.log(`received: ${decrypted.text} from ${f.displayName}`);
-        } catch (e) {}
+          let decrypted: any;
+          try {
+            decrypted = crypt.decrypt(sharedA, rawData);
+          } catch (_e) {
+            // not this friend
+            continue;
+          }
+          console.log(`received ${decrypted.text} from ${f.displayName}`);
+          f.messages.push(decrypted.text);
+          localWebSocket.send(
+            `{"message":"friendsResponse","friends":${JSON.stringify(
+              config.friends
+            )}}`
+          );
+          break;
+        } catch (e) {
+          console.log("could not send message to localWebSocket:", e);
+        }
       }
     });
   });

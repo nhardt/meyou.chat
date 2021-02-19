@@ -1,4 +1,27 @@
 var s = new WebSocket("ws://127.0.0.1:3031/");
+var dataModel = {
+  friends: [],
+};
+
+function render() {
+  let dropdown = document.getElementById("friends");
+  if (dropdown.options.length == 0) {
+    dataModel.friends.forEach((friend) => {
+      let opt = document.createElement("option");
+      opt.text = friend.displayName;
+      opt.value = friend.publicKeyBase64;
+      dropdown.add(opt, null);
+    });
+  }
+
+  let messages = "";
+  dataModel.friends[dropdown.selectedIndex].messages.forEach((m) => {
+    messages += m + "<br />";
+  });
+  let divMessages = document.getElementById("messages");
+  divMessages.innerHTML = messages;
+}
+
 function sendMessage() {
   var message = {
     type: "message",
@@ -7,22 +30,15 @@ function sendMessage() {
     date: Date.now(),
   };
   s.send(JSON.stringify(message));
-  //document.getElementById("message").value = "";
+  document.getElementById("message").value = "";
 }
 
 s.onmessage = function (event) {
-  console.log("got ws message:", event.data);
   let response = JSON.parse(event.data);
   if (response.message == "friendsResponse") {
-    console.log(response.friends);
-    let dropdown = document.getElementById("friends");
-    response.friends.forEach((friend) => {
-      console.log(friend);
-      let opt = document.createElement("option");
-      opt.text = friend.displayName;
-      opt.value = friend.publicKeyBase64;
-      dropdown.add(opt, null);
-    });
+    console.log("friends response", response.friends);
+    dataModel.friends = response.friends;
+    render();
   } else {
     console.log("received unknown message:", response);
   }
