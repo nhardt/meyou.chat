@@ -51,6 +51,8 @@ This will output something like:
 }
 ```
 
+Make a .data directory and save the file as .data/config.json.
+
 #### Fields
 
 You are free to use any ports for localHttpPort and localWebSocketPort.
@@ -106,6 +108,19 @@ publicKey.
 Their public key. When you give them your "publicKeyBase64" this is what
 they give back.
 
+###### MeMe
+
+You can add yourself in the friends section for testing.
+
+```
+    {
+      "ip": "::1",
+      "port": 2679,
+      "displayName": "me",
+      "publicKeyBase64": "<generated public key from genconfig>"
+    }
+```
+
 ## Usage
 
 `npm run start`
@@ -129,7 +144,7 @@ https://nodejs.org/dist/latest-v15.x/docs/api/net.html
 https://nodejs.org/dist/latest-v15.x/docs/api/http.html
 https://expressjs.com/en/starter/basic-routing.html
 
-### Client 
+### Client
 
 https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionsCollection
 
