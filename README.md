@@ -32,6 +32,7 @@ This project started from 6eer test code.
 
 ### Nodejs
 
+https://github.com/TypeStrong/ts-node
 https://nodejs.org/dist/latest-v15.x/docs/api/net.html
 https://nodejs.org/dist/latest-v15.x/docs/api/http.html
 https://expressjs.com/en/starter/basic-routing.html
