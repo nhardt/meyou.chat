@@ -7,7 +7,6 @@ export interface Friend {
   port: number;
   displayName: string;
   publicKeyBase64: string;
-  networkName: String;
   publicKey?: Uint8Array;
   messages: string[];
 }
@@ -63,7 +62,6 @@ export function genConfig() {
       "port": 2679,
       "displayName": "",
       "publicKeyBase64": "",
-      "networkName": ""
     }
   ]
 }
