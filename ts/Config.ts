@@ -53,7 +53,6 @@ export function genConfig() {
   "localHttpPort": 3030,
   "localWebSocketPort": 3030,
   "internetListenPort": 2679,
-  "displayName": "yourname",
   "secretKeyBase64": "${encodeBase64(keys.secretKey)}",
   "publicKeyBase64": "${encodeBase64(keys.publicKey)}",
   "friends": [
