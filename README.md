@@ -36,9 +36,7 @@ https://nodejs.org/dist/latest-v15.x/docs/api/net.html
 https://nodejs.org/dist/latest-v15.x/docs/api/http.html
 https://expressjs.com/en/starter/basic-routing.html
 
-### Client Side
-
-#### JS
+### Client 
 
 https://developer.mozilla.org/en-US/docs/Web/API/HTMLOptionsCollection
 
