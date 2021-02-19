@@ -45,7 +45,7 @@ This will output something like:
       "ip": "",
       "port": 2679,
       "displayName": "",
-      "publicKeyBase64": "",
+      "publicKeyBase64": ""
     }
   ]
 }

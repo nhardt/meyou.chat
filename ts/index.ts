@@ -93,8 +93,12 @@ transport.listen(config.internetListenPort, "::0", () => {
           let decrypted: any;
           try {
             decrypted = crypt.decrypt(sharedA, rawData);
-          } catch (_e) {
-            // not this friend
+          } catch (e) {
+            console.log(
+              "coud not decrypt message, not from ",
+              f.displayName,
+              e
+            );
             continue;
           }
           console.log(`received ${decrypted.text} from ${f.displayName}`);

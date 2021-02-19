@@ -51,7 +51,7 @@ export function genConfig() {
   console.log(`
 {
   "localHttpPort": 3030,
-  "localWebSocketPort": 3030,
+  "localWebSocketPort": 3031,
   "internetListenPort": 2679,
   "secretKeyBase64": "${encodeBase64(keys.secretKey)}",
   "publicKeyBase64": "${encodeBase64(keys.publicKey)}",
@@ -60,7 +60,7 @@ export function genConfig() {
       "ip": "",
       "port": 2679,
       "displayName": "",
-      "publicKeyBase64": "",
+      "publicKeyBase64": ""
     }
   ]
 }
