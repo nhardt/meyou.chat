@@ -1,5 +1,6 @@
 import fs = require("fs");
-import { decodeBase64 } from "tweetnacl-util";
+import { encodeBase64, decodeBase64 } from "tweetnacl-util";
+import crypt = require("./crypt");
 
 export interface Friend {
   ip: string;
@@ -42,4 +43,28 @@ export class Config {
       f.publicKey = decodeBase64(f.publicKeyBase64);
     });
   }
+}
+
+export function genConfig() {
+  const keys = crypt.generateKeyPair();
+  console.log(`
+{
+  "localHttpPort": 3030,
+  "localWebSocketPort": 3030,
+  "internetListenPort": 2679,
+  "displayName": "yourname",
+  "secretKeyBase64": "${encodeBase64(keys.secretKey)}",
+  "publicKeyBase64": "${encodeBase64(keys.publicKey)}",
+  "friends": [
+    {
+      "ip": "",
+      "port": 2679,
+      "displayName": "",
+      "publicKeyBase64": "",
+      "networkName": ""
+    }
+  ]
+}
+
+`);
 }
