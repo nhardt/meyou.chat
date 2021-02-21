@@ -27,6 +27,7 @@ export class Config {
   internetListenPort: number;
   displayName: string;
   friends: Friend[];
+  publicKeyBase64: Uint8Array;
   publicKey: Uint8Array;
   secretKey: Uint8Array;
 
@@ -39,7 +40,6 @@ export class Config {
     this.publicKey = decodeBase64(file.publicKeyBase64);
 
     this.friends.forEach((f: Friend) => {
-      console.log(f.publicKeyBase64);
       f.publicKey = decodeBase64(f.publicKeyBase64);
       f.messages = [`start of conversation with ${f.displayName}`];
     });

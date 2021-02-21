@@ -4,9 +4,32 @@ import express = require("express");
 import WebSocket = require("ws");
 import http = require("http");
 import { genConfig, Config, Friend } from "./Config";
+import os = require("os");
 
 if (process.argv[2] == "genconfig") {
   genConfig();
+  process.exit(0);
+} else if (process.argv[2] == "whoami") {
+  let config = new Config("./.data/config.json");
+  let ifs = os.networkInterfaces();
+  for (let i in ifs) {
+    for (let j in ifs[i]) {
+      let addr = ifs[i][j];
+      if (
+        !addr.internal &&
+        addr.family == "IPv6" &&
+        addr.address.substring(0, 2) != "fe"
+      ) {
+        let me = {
+          ip: addr.address,
+          port: config.internetListenPort,
+          displayName: "yourname",
+          publicKeyBase64: config.publicKeyBase64,
+        };
+        console.log(me);
+      }
+    }
+  }
   process.exit(0);
 }
 
