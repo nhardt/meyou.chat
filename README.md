@@ -121,6 +121,12 @@ You can add yourself in the friends section for testing.
     }
 ```
 
+###### MeYou
+
+Run the following to get a config to trade with your ipv6 friends
+`npx ts-node ts/index.ts whoami`
+
+
 ## Usage
 
 `npm run start`
