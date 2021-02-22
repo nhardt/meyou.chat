@@ -26,7 +26,7 @@ if (process.argv[2] == "genconfig") {
           displayName: "yourname",
           publicKeyBase64: config.publicKeyBase64,
         };
-        console.log(me);
+        console.log(JSON.stringify(me));
       }
     }
   }
